@@ -101,18 +101,26 @@ public class IceGameLoop : MonoBehaviour
     private float frostWaitTimer = 0f;
 
     [Header("ระบบเสียงเอฟเฟกต์ (SFX)")]
-    public AudioSource sfxSource;     // ใส่ AudioSource สำหรับเล่นเสียง
-    public AudioClip sfxCupSlide;     // เสียงเลื่อนแก้ว
-    public AudioClip sfxMelting;      // เสียงน้ำหยด (เล่นตอนรอละลาย)
-    public AudioClip sfxFreeze;       // เสียงพังทลาย/กระจกแตก
+    public AudioSource sfxSource;
+    public AudioClip sfxCupSlide;
+    public AudioClip sfxMelting;
+    public AudioClip sfxFreeze;
     public AudioClip sfxIceBreak;
-    public AudioClip sfxPerfect;      // เสียง Good/Perfect
-    public AudioClip sfxBad;          // เสียงฟ้าผ่า/พลาด
+    public AudioClip sfxPerfect;
+    public AudioClip sfxBad;
+
+    [Header("ระบบหน้าจอจบเกม (Game Over UI)")]
+    public RectTransform gameOverPanel;
+    public TextMeshProUGUI finalScoreText;
+    public float panelSlideSpeed = 2000f;
+    private Vector2 panelHiddenPos = new Vector2(0f, -1500f);
+    private Vector2 panelShowPos = new Vector2(0f, 0f);
+    private bool isGameOverPanelMoving = false;
 
     private float currentPower = 0f;
     private float resultDisplayTimer = 2f;
     private float currentResultTimer = 0f;
-    private float meltDripTimer = 0f; // ตัวจับเวลาสำหรับเล่นเสียงน้ำหยดรัวๆ
+    private float meltDripTimer = 0f;
 
     void Start()
     {
@@ -123,9 +131,14 @@ public class IceGameLoop : MonoBehaviour
             popupScoreText.gameObject.SetActive(false);
         }
 
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.anchoredPosition = panelHiddenPos;
+            gameOverPanel.gameObject.SetActive(false);
+        }
+
         currentFrostAlpha = 0f;
         UpdateFrostAlpha(0f);
-
         timeRemaining = gameDuration;
         currentScore = 0;
         UpdateScoreUI();
@@ -156,14 +169,8 @@ public class IceGameLoop : MonoBehaviour
                 }
                 else
                 {
-                    if (frostWaitTimer > 0)
-                    {
-                        frostWaitTimer -= Time.deltaTime;
-                    }
-                    else
-                    {
-                        currentFrostAlpha -= frostMeltSpeed * Time.deltaTime;
-                    }
+                    if (frostWaitTimer > 0) frostWaitTimer -= Time.deltaTime;
+                    else currentFrostAlpha -= frostMeltSpeed * Time.deltaTime;
                 }
                 currentFrostAlpha = Mathf.Clamp01(currentFrostAlpha);
                 UpdateFrostAlpha(currentFrostAlpha);
@@ -176,11 +183,7 @@ public class IceGameLoop : MonoBehaviour
                 if (!isCustomerInPosition)
                 {
                     customerTransform.position = Vector3.MoveTowards(customerTransform.position, onScreenPos, slideSpeed * Time.deltaTime);
-
-                    if (cupTransform != null)
-                    {
-                        cupTransform.position = Vector3.MoveTowards(cupTransform.position, cupOnScreenPos, cupSlideSpeed * Time.deltaTime);
-                    }
+                    if (cupTransform != null) cupTransform.position = Vector3.MoveTowards(cupTransform.position, cupOnScreenPos, cupSlideSpeed * Time.deltaTime);
 
                     if (Vector3.Distance(customerTransform.position, onScreenPos) < 0.1f)
                     {
@@ -203,10 +206,7 @@ public class IceGameLoop : MonoBehaviour
                             FinishTyping();
                         }
                     }
-                    else
-                    {
-                        if (Input.GetKeyDown(KeyCode.Space)) StartPlayingPhase();
-                    }
+                    else if (Input.GetKeyDown(KeyCode.Space)) StartPlayingPhase();
                 }
                 break;
 
@@ -229,10 +229,7 @@ public class IceGameLoop : MonoBehaviour
                         CheckResult();
                     }
                 }
-                else if (Input.GetKeyUp(KeyCode.Space))
-                {
-                    CheckResult();
-                }
+                else if (Input.GetKeyUp(KeyCode.Space)) CheckResult();
                 break;
 
             case GameState.Result:
@@ -241,7 +238,6 @@ public class IceGameLoop : MonoBehaviour
                     currentMeltTimer -= Time.deltaTime;
                     meltDripTimer -= Time.deltaTime;
 
-                    // เล่นเสียงน้ำหยดทุกๆ 0.5 วินาทีระหว่างที่กำลังรอละลาย
                     if (meltDripTimer <= 0f)
                     {
                         PlaySFX(sfxMelting);
@@ -249,7 +245,6 @@ public class IceGameLoop : MonoBehaviour
                     }
 
                     dialogText.text = "เวทย์ Meltdown!\nรอน้ำแข็งที่ตัวละลาย... " + currentMeltTimer.ToString("F1") + " วินาที";
-
                     currentFrostAlpha = currentMeltTimer / meltDuration;
                     UpdateFrostAlpha(currentFrostAlpha);
 
@@ -264,38 +259,49 @@ public class IceGameLoop : MonoBehaviour
                 else
                 {
                     currentResultTimer -= Time.deltaTime;
-                    if (currentResultTimer <= 0)
-                    {
-                        StartOrderPhase();
-                    }
+                    if (currentResultTimer <= 0) StartOrderPhase();
                 }
                 break;
 
             case GameState.GameOver:
-                if (Input.GetKeyDown(KeyCode.R))
+                // จัดการสไลด์หน้าจอ GameOver
+                if (isGameOverPanelMoving && gameOverPanel != null)
                 {
-                    currentFrostAlpha = 0f;
-                    UpdateFrostAlpha(0f);
-                    timeRemaining = gameDuration;
-                    currentScore = 0;
-                    UpdateScoreUI();
-                    StartOrderPhase();
+                    gameOverPanel.anchoredPosition = Vector2.MoveTowards(gameOverPanel.anchoredPosition, panelShowPos, panelSlideSpeed * Time.deltaTime);
+                    if (Vector2.Distance(gameOverPanel.anchoredPosition, panelShowPos) < 1f)
+                    {
+                        isGameOverPanelMoving = false; // สไลด์เสร็จแล้ว
+                    }
                 }
-                else if (Input.GetKeyDown(KeyCode.M))
-                {
-                    SceneManager.LoadScene("MainMenu");
-                }
+
+                // รองรับการกดคีย์บอร์ดด้วย (เผื่อคนไม่อยากคลิก)
+                if (Input.GetKeyDown(KeyCode.R)) RestartGame();
+                else if (Input.GetKeyDown(KeyCode.M)) GoToMainMenu();
                 break;
         }
     }
 
-    // ฟังก์ชันเสริมสำหรับเล่นเสียง
+    // --- ฟังก์ชันปุ่มกด (เรียกใช้จากปุ่ม UI) ---
+    public void RestartGame()
+    {
+        if (gameOverPanel != null) gameOverPanel.gameObject.SetActive(false);
+        currentFrostAlpha = 0f;
+        UpdateFrostAlpha(0f);
+        timeRemaining = gameDuration;
+        currentScore = 0;
+        UpdateScoreUI();
+        StartOrderPhase();
+    }
+
+    public void GoToMainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
+    }
+    // ------------------------------------
+
     void PlaySFX(AudioClip clip)
     {
-        if (sfxSource != null && clip != null)
-        {
-            sfxSource.PlayOneShot(clip);
-        }
+        if (sfxSource != null && clip != null) sfxSource.PlayOneShot(clip);
     }
 
     void UpdateFrostAlpha(float alpha)
@@ -325,9 +331,7 @@ public class IceGameLoop : MonoBehaviour
         iceObject.SetActive(true);
         iceSpriteRenderer.sprite = waterSprite;
         UpdateIceScale();
-
-        if (powerBarContainer != null)
-            powerBarContainer.SetActive(true);
+        if (powerBarContainer != null) powerBarContainer.SetActive(true);
     }
 
     void UpdateTimerUI()
@@ -337,8 +341,7 @@ public class IceGameLoop : MonoBehaviour
 
     void UpdateScoreUI()
     {
-        if (scoreText != null)
-            scoreText.text = "คะแนน: " + currentScore.ToString();
+        if (scoreText != null) scoreText.text = "คะแนน: " + currentScore.ToString();
     }
 
     void EndGame()
@@ -348,7 +351,21 @@ public class IceGameLoop : MonoBehaviour
         if (powerBarContainer != null) powerBarContainer.SetActive(false);
         customerObjectCheck();
         customerSpriteRenderer.sprite = currentCustomer.faceEntering;
-        dialogText.text = "หมดเวลา!\nคะแนนรวมของคุณคือ: " + currentScore + "\n(กด R เล่นใหม่ หรือ กด M กลับหน้าเมนู)";
+
+        dialogText.text = "TIME OUT!";
+
+        // สั่งโชว์และเลื่อนหน้าจอ Game Over
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.gameObject.SetActive(true);
+            gameOverPanel.anchoredPosition = panelHiddenPos;
+
+            if (finalScoreText != null)
+            {
+                finalScoreText.text = "TIME OUT!\n\nคะแนนที่ได้:\n" + currentScore;
+            }
+            isGameOverPanelMoving = true;
+        }
 
         currentFrostAlpha = 0f;
         UpdateFrostAlpha(0f);
@@ -375,15 +392,8 @@ public class IceGameLoop : MonoBehaviour
         }
 
         customerTransform.position = offScreenPos;
-        if (cupTransform != null)
-        {
-            cupTransform.position = cupOffScreenPos;
-        }
-
-        if (currentCustomer != null)
-        {
-            customerSpriteRenderer.sprite = currentCustomer.faceEntering;
-        }
+        if (cupTransform != null) cupTransform.position = cupOffScreenPos;
+        if (currentCustomer != null) customerSpriteRenderer.sprite = currentCustomer.faceEntering;
 
         iceObject.SetActive(false);
         if (powerBarContainer != null) powerBarContainer.SetActive(false);
@@ -392,7 +402,7 @@ public class IceGameLoop : MonoBehaviour
         powerBarFill.fillAmount = 0f;
         powerBarFill.color = Color.white;
 
-        PlaySFX(sfxCupSlide); // เล่นเสียงตอนแก้วเริ่มสไลด์ขึ้นมาบนโต๊ะ
+        PlaySFX(sfxCupSlide);
     }
 
     void StartPlayingPhase()
@@ -409,12 +419,11 @@ public class IceGameLoop : MonoBehaviour
     {
         currentState = GameState.Result;
         currentResultTimer = resultDisplayTimer;
-
         float distance = Mathf.Abs(currentPower - targetPoint);
 
         if (currentPower >= 100f)
         {
-            dialogText.text = "แตกหมดแล้ว!";
+            dialogText.text = "น้ำแข็งพังทลาย!";
             customerSpriteRenderer.sprite = currentCustomer.faceBad;
 
             isFrozen = true;
@@ -423,17 +432,16 @@ public class IceGameLoop : MonoBehaviour
             UpdateFrostAlpha(1f);
 
             PlaySFX(sfxIceBreak);
-            PlaySFX(sfxFreeze); // เล่นเสียงเพล้ง/แข็ง
-            meltDripTimer = 0.5f; // เริ่มจับเวลาเสียงน้ำหยด
+            PlaySFX(sfxFreeze);
+            meltDripTimer = 0.5f;
         }
         else if (distance <= greenZone)
         {
-            dialogText.text = "PERFECT!";
+            dialogText.text = "PERFECT! เย็นชื่นใจสุดๆ!";
             customerSpriteRenderer.sprite = currentCustomer.facePerfect;
             currentScore += scorePerfect;
             ShowPopupScore(scorePerfect);
-
-            PlaySFX(sfxPerfect); // เล่นเสียง Perfect
+            PlaySFX(sfxPerfect);
         }
         else if (distance <= yellowZone)
         {
@@ -441,17 +449,14 @@ public class IceGameLoop : MonoBehaviour
             customerSpriteRenderer.sprite = currentCustomer.faceGood;
             currentScore += scoreGood;
             ShowPopupScore(scoreGood);
-
-            PlaySFX(sfxPerfect); // ให้เสียง Good ใช้เสียงเดียวกับ Perfect ไปก่อน
+            PlaySFX(sfxPerfect);
         }
         else
         {
-            dialogText.text = "แบบนี้ไม่กินโว้ยยย!";
+            dialogText.text = "พลาด! แบบนี้กินไม่ได้!";
             customerSpriteRenderer.sprite = currentCustomer.faceBad;
-
-            PlaySFX(sfxBad); // เล่นเสียงฟ้าผ่า/พลาด
+            PlaySFX(sfxBad);
         }
-
         UpdateScoreUI();
     }
 
@@ -466,7 +471,6 @@ public class IceGameLoop : MonoBehaviour
     {
         popupScoreText.gameObject.SetActive(true);
         popupScoreText.text = "+" + addedScore.ToString();
-
         popupRect.anchoredPosition = popupStartPos;
         Color textColor = popupScoreText.color;
         textColor.a = 1f;
@@ -477,15 +481,11 @@ public class IceGameLoop : MonoBehaviour
         {
             timer += Time.deltaTime;
             float progress = timer / popupDuration;
-
             popupRect.anchoredPosition += Vector2.up * popupFloatSpeed * Time.deltaTime;
-
             textColor.a = Mathf.Lerp(1f, 0f, progress);
             popupScoreText.color = textColor;
-
             yield return null;
         }
-
         popupScoreText.gameObject.SetActive(false);
     }
 
