@@ -1,13 +1,16 @@
 fileFormatVersion: 2
-guid: 37d40c25561ef6e4d97c905ff21e19cc
+guid: 1e920e1c2f6fd3145bd00dc8dcf3d7d2
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2225503104332575589
-    second: ice1_0
+      213: -5174135241480510003
+    second: glasslayer0_0
   - first:
-      213: 792902898547299774
-    second: ice1_1
+      213: -5608059093570458702
+    second: glasslayer0_1
+  - first:
+      213: -3384319915256672575
+    second: glasslayer0_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -49,10 +52,10 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
-  alignment: 7
+  alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
@@ -116,13 +119,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: ice1_0
+      name: glasslayer0_0
       rect:
         serializedVersion: 2
-        x: 57
-        y: 38
-        width: 320
-        height: 339
+        x: 246
+        y: 485
+        width: 17
+        height: 27
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -131,20 +134,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 563b54c384392ee10800000000000000
-      internalID: 2225503104332575589
+      spriteID: dc569bf5967c138b0800000000000000
+      internalID: -5174135241480510003
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ice1_1
+      name: glasslayer0_1
       rect:
         serializedVersion: 2
-        x: 337
-        y: 289
-        width: 71
-        height: 80
+        x: 261
+        y: 495
+        width: 8
+        height: 17
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,8 +156,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: eb51a493cf4f00b00800000000000000
-      internalID: 792902898547299774
+      spriteID: 2bb655897fb2c22b0800000000000000
+      internalID: -5608059093570458702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: glasslayer0_2
+      rect:
+        serializedVersion: 2
+        x: 45
+        y: 34
+        width: 493
+        height: 450
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ce88dcc7fa7801d0800000000000000
+      internalID: -3384319915256672575
       vertices: []
       indices: 
       edges: []
@@ -163,7 +188,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -173,8 +198,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      ice1_0: 2225503104332575589
-      ice1_1: 792902898547299774
+      glasslayer0_0: -5174135241480510003
+      glasslayer0_1: -5608059093570458702
+      glasslayer0_2: -3384319915256672575
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

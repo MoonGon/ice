@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI; // ต้องมีเพื่อเรียกใช้ Slider
-using TMPro; // ต้องมีเพื่อเรียกใช้ InputField
+using UnityEngine.UI; 
+using TMPro; 
 
 public class MainMenuController : MonoBehaviour
 {
@@ -12,16 +12,13 @@ public class MainMenuController : MonoBehaviour
 
     void Start()
     {
-        // 1. ซ่อนหน้าต่างตั้งค่าตอนเริ่มเกม
         if (settingsPanel != null) settingsPanel.SetActive(false);
 
-        // 2. โหลดชื่อผู้เล่น (ถ้าไม่เคยตั้ง จะใช้คำว่า "คุณ (Player)")
         if (nameInputField != null)
         {
             nameInputField.text = PlayerPrefs.GetString("PlayerName", "คุณ (Player)");
         }
 
-        // 3. โหลดระดับเสียง (ค่าเริ่มต้น 1.0 คือดังสุด)
         if (volumeSlider != null)
         {
             float savedVolume = PlayerPrefs.GetFloat("GameVolume", 1f);
@@ -37,7 +34,7 @@ public class MainMenuController : MonoBehaviour
 
     public void QuitGame()
     {
-        Debug.Log("ออกจากเกม!");
+        Debug.Log("ออกเกม");
         Application.Quit();
     }
 
@@ -50,11 +47,9 @@ public class MainMenuController : MonoBehaviour
 
     public void CloseSettings()
     {
-        // เซฟชื่อลงเครื่องตอนกดปิดหน้าต่าง
         PlayerPrefs.SetString("PlayerName", nameInputField.text);
         PlayerPrefs.Save();
 
-        // สั่งให้กระดานคะแนนรีเฟรชเพื่อโชว์ชื่อใหม่ทันที
         LeaderboardManager lb = FindFirstObjectByType<LeaderboardManager>();
         if (lb != null) lb.DisplayLeaderboard();
 
@@ -63,9 +58,8 @@ public class MainMenuController : MonoBehaviour
 
     public void OnVolumeChanged()
     {
-        // ฟังก์ชันนี้จะถูกเรียกทุกครั้งที่ผู้เล่นเลื่อนหลอดเสียง
         float vol = volumeSlider.value;
-        AudioListener.volume = vol; // ปรับเสียง Master ของ Unity
-        PlayerPrefs.SetFloat("GameVolume", vol); // เซฟค่าเสียง
+        AudioListener.volume = vol;
+        PlayerPrefs.SetFloat("GameVolume", vol);
     }
 }

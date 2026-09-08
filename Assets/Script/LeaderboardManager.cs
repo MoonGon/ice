@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
-using System.Linq; // ต้องใช้ตัวนี้เพื่อช่วยเรียงลำดับคะแนน
+using System.Linq;
 
 public class LeaderboardManager : MonoBehaviour
 {
@@ -25,7 +25,7 @@ public class LeaderboardManager : MonoBehaviour
             if (!PlayerPrefs.HasKey("RivalScore_" + i))
             {
                 PlayerPrefs.SetString("RivalName_" + i, rivalNames[i]);
-                PlayerPrefs.SetInt("RivalScore_" + i, Random.Range(100, 300)); // คะแนนตั้งต้น (ปรับได้)
+                PlayerPrefs.SetInt("RivalScore_" + i, Random.Range(100, 300));
             }
         }
     }
@@ -37,7 +37,7 @@ public class LeaderboardManager : MonoBehaviour
 
         // 2. ดึงคะแนนสูงสุดของผู้เล่น (ถ้าไม่เคยเล่นจะได้ 0)
         int myBestScore = PlayerPrefs.GetInt("MyBestScore", 0);
-        // ดึงชื่อที่ตั้งไว้มาใช้ ถ้าไม่มีให้ใช้ "คุณ (Player)"
+        // ดึงชื่อที่ตั้งไว้มาใช้
         string myName = PlayerPrefs.GetString("PlayerName", "คุณ (Player)");
         allPlayers.Add(new PlayerData(myName, myBestScore));
 
@@ -50,10 +50,8 @@ public class LeaderboardManager : MonoBehaviour
             allPlayers.Add(new PlayerData(rName, rScore));
         }
 
-        // 4. สั่งเรียงลำดับคะแนนจาก มาก ไป น้อย (OrderByDescending)
         allPlayers = allPlayers.OrderByDescending(p => p.score).ToList();
 
-        // 5. ส่งข้อความไปแสดงบน UI ทั้ง 5 อันดับ
         for (int i = 0; i < rankTexts.Length; i++)
         {
             if (i < allPlayers.Count && rankTexts[i] != null)
@@ -78,16 +76,15 @@ public class LeaderboardManager : MonoBehaviour
         playCount++;
         PlayerPrefs.SetInt("TotalPlayCount", playCount);
 
-        // 3. ทุกๆ 3 รอบ ให้คู่แข่งทั้ง 4 คนอัปเลเวล (สุ่มบวกคะแนน)
+        // 3. ทุกๆ 3 รอบ ให้คู่แข่งทั้ง 4 คน (สุ่มบวกคะแนน)
         if (playCount % 3 == 0)
         {
             for (int i = 0; i < 4; i++)
             {
                 int currentRivalScore = PlayerPrefs.GetInt("RivalScore_" + i, 0);
-                int boost = Random.Range(20, 150); // สุ่มบวกคะแนน 20 ถึง 150 แต้ม
+                int boost = Random.Range(50, 350);
                 PlayerPrefs.SetInt("RivalScore_" + i, currentRivalScore + boost);
             }
-            Debug.Log("คู่แข่งอัปเลเวลแล้ว! ผ่านมา 3 รอบแล้วสินะ");
         }
 
         PlayerPrefs.Save(); // สั่งเซฟข้อมูลลงเครื่อง
